@@ -11,4 +11,15 @@ export default () => ({
     password: process.env.REDIS_PASSWORD,
     db: parseInt(process.env.REDIS_DB ?? '0', 10),
   },
+  apiFootball: {
+  baseUrl: process.env.API_FOOTBALL_BASE_URL,
+  apiKey: process.env.API_FOOTBALL_KEY,
+},
+footballData: {
+  baseUrl: process.env.FOOTBALL_DATA_BASE_URL,
+  apiKey: process.env.FOOTBALL_DATA_API_KEY,
+},
+footballProvider: {
+  provider: process.env.FOOTBALL_PROVIDER,
+},
 });

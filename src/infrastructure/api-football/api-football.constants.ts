@@ -1,0 +1,1 @@
+export const FOOTBALL_PROVIDER = Symbol('FOOTBALL_PROVIDER');

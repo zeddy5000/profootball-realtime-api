@@ -10,6 +10,9 @@ import { AppService } from './app.service';
 import { HealthModule } from './modules/health/health.module';
 import { MatchesModule } from './modules/matches/matches.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
+import { ApiFootballModule } from './infrastructure/api-football/api-football.module';
+import { FootballModule } from './modules/football/football.module';
+import { FootballProviderModule } from './infrastructure/football-provider/football-provider.module';
 
 @Module({
   imports: [
@@ -26,6 +29,14 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     HealthModule,
 
     MatchesModule,
+
+    ApiFootballModule,
+
+     FootballModule,
+
+     FootballProviderModule,
+
+    
   ],
   controllers: [AppController],
   providers: [AppService],
