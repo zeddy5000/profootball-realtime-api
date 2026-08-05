@@ -1,21 +1,20 @@
 import { Module } from '@nestjs/common';
 
 import { MatchesController } from './controllers/matches.controller';
-import { InMemoryMatchesRepository } from './reposirories/in-memory-matches.repository';
-import { MATCHES_REPOSITORY } from './reposirories/matches.tokens';
 import { MatchesService } from './services/matches.service';
 
-
+import { MATCHES_REPOSITORY } from './reposirories/matches.tokens';
+import { RedisMatchesRepository } from './reposirories/redis-matches.repository';
 
 @Module({
   controllers: [MatchesController],
   providers: [
     MatchesService,
+    RedisMatchesRepository,
     {
       provide: MATCHES_REPOSITORY,
-      useClass: InMemoryMatchesRepository,
+      useClass: RedisMatchesRepository,
     },
   ],
-  exports: [MatchesService],
 })
 export class MatchesModule {}
