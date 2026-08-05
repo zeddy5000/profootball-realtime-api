@@ -18,4 +18,8 @@ export const validationSchema = Joi.object({
   REDIS_PASSWORD: Joi.string().allow('').optional(),
 
   REDIS_DB: Joi.number().default(0),
+
+  API_FOOTBALL_BASE_URL: Joi.string().required(),
+
+ API_FOOTBALL_KEY: Joi.string().required(),
 });
