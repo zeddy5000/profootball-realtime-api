@@ -5,6 +5,9 @@ import { validationSchema } from './config/env.validation'
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './modules/health/health.module';
+import { MatchesModule } from './modules/matches/matches.module';
+
+
 
 
 @Module({
@@ -17,6 +20,7 @@ import { HealthModule } from './modules/health/health.module';
       envFilePath: '.env',
     }),
     HealthModule,
+    MatchesModule,
 
   ],
   controllers: [AppController],
