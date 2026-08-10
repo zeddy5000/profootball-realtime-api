@@ -6,9 +6,13 @@ import { UpdateMatchDto } from '../dto/update-match.dto';
 import { Match } from '../entities/match.entity';
 import { MatchStatus } from '../enums/match-status.enum';
 import { IMatchesRepository } from './matches.repository.interface';
+import { MatchStateUpdate } from '../interfaces/match-state-update.interface';
 
 @Injectable()
 export class InMemoryMatchesRepository implements IMatchesRepository {
+  updateState(id: string, update: MatchStateUpdate): Promise<Match | null> {
+    throw new Error('Method not implemented.');
+  }
   private readonly matches: Match[] = [];
 
   async create(createMatchDto: CreateMatchDto): Promise<Match> {
