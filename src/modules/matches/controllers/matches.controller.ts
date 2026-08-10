@@ -16,6 +16,7 @@ import {
 import { CreateMatchDto } from '../dto/create-match.dto';
 import { UpdateMatchDto } from '../dto/update-match.dto';
 import { MatchesService } from '../services/matches.service';
+import { UpdateMatchStateDto } from '../dto/update-match-state.dto';
 
 @ApiTags('Matches')
 @Controller({
@@ -81,6 +82,28 @@ export class MatchesController {
   ) {
     return this.matchesService.update(id, dto);
   }
+
+  @Patch(':id/state')
+@ApiOperation({
+  summary: 'Update the live state of a match',
+})
+@ApiResponse({
+  status: 200,
+  description: 'Match state updated successfully.',
+})
+@ApiResponse({
+  status: 404,
+  description: 'Match not found.',
+})
+updateState(
+  @Param('id') id: string,
+  @Body() dto: UpdateMatchStateDto,
+) {
+  return this.matchesService.updateState(
+    id,
+    dto,
+  );
+}
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a match' })

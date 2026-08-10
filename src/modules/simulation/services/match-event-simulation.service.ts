@@ -6,6 +6,8 @@ import { MatchEventType } from '../../matches/enums/match-event-type.enum';
 import { MatchEventsService } from '../../matches/services/match-events.service';
 import { MatchesService } from '../../matches/services/matches.service';
 
+import { RealtimeService } from '../../realtime/services/realtime.service';
+
 @Injectable()
 export class MatchEventSimulationService {
   // Approximate probability of a goal occurring on each simulated minute.
@@ -14,6 +16,7 @@ export class MatchEventSimulationService {
   constructor(
     private readonly matchesService: MatchesService,
     private readonly matchEventsService: MatchEventsService,
+    private readonly realtimeService: RealtimeService,
   ) {}
 
   async simulate(
@@ -53,22 +56,47 @@ export class MatchEventSimulationService {
       createdAt: new Date(),
     };
 
-    await this.matchEventsService.create(
-      event,
+    /*
+     * Persist the match event.
+     */
+    const createdEvent =
+      await this.matchEventsService.create(
+        event,
+      );
+
+    /*
+     * Broadcast the newly created event
+     * to clients subscribed to this match.
+     */
+    this.realtimeService.broadcastMatchEvent(
+      createdEvent,
     );
 
-    await this.matchesService.updateState(
-      match.id,
-      {
-        homeScore: isHomeTeam
-          ? match.homeScore + 1
-          : match.homeScore,
+    /*
+     * Update the match score.
+     */
+    const updatedMatch =
+      await this.matchesService.updateState(
+        match.id,
+        {
+          homeScore: isHomeTeam
+            ? match.homeScore + 1
+            : match.homeScore,
 
-        awayScore: isHomeTeam
-          ? match.awayScore
-          : match.awayScore + 1,
-      },
-    );
+          awayScore: isHomeTeam
+            ? match.awayScore
+            : match.awayScore + 1,
+        },
+      );
+
+    /*
+     * Broadcast the updated score.
+     */
+    if (updatedMatch) {
+      this.realtimeService.broadcastScoreUpdate(
+        updatedMatch,
+      );
+    }
   }
 
   private generatePlayerName(): string {

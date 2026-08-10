@@ -14,6 +14,7 @@ import { ApiFootballModule } from './infrastructure/api-football/api-football.mo
 import { FootballModule } from './modules/football/football.module';
 import { FootballProviderModule } from './infrastructure/football-provider/football-provider.module';
 import { SimulationModule } from './modules/simulation/simulation.module';
+import { RealtimeModule } from './modules/realtime/real-time.module';
 
 @Module({
   imports: [
@@ -38,6 +39,8 @@ import { SimulationModule } from './modules/simulation/simulation.module';
      FootballProviderModule,
 
      SimulationModule,
+
+     RealtimeModule,
 
     
   ],
