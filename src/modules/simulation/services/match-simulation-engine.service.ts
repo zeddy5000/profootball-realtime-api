@@ -3,13 +3,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MatchStatus } from '../../matches/enums/match-status.enum';
 import { MatchesService } from '../../matches/services/matches.service';
 
+import { RealtimeService } from '../../realtime/services/realtime.service';
+
 import { MatchEventSimulationService } from './match-event-simulation.service';
 import { SimulationPhase } from '../enum/simulation-phase.enum';
 
 @Injectable()
 export class MatchSimulationEngineService {
   private readonly logger =
-    new Logger(MatchSimulationEngineService.name);
+    new Logger(
+      MatchSimulationEngineService.name,
+    );
 
   private readonly simulations =
     new Map<string, NodeJS.Timeout>();
@@ -23,9 +27,12 @@ export class MatchSimulationEngineService {
   constructor(
     private readonly matchesService: MatchesService,
     private readonly matchEventSimulationService: MatchEventSimulationService,
+    private readonly realtimeService: RealtimeService,
   ) {}
 
-  async start(matchId: string): Promise<void> {
+  async start(
+    matchId: string,
+  ): Promise<void> {
     if (this.simulations.has(matchId)) {
       this.logger.warn(
         `Match ${matchId} is already being simulated.`,
@@ -35,7 +42,9 @@ export class MatchSimulationEngineService {
     }
 
     const match =
-      await this.matchesService.findOne(matchId);
+      await this.matchesService.findOne(
+        matchId,
+      );
 
     if (match.status !== MatchStatus.LIVE) {
       throw new Error(
@@ -47,7 +56,8 @@ export class MatchSimulationEngineService {
      * Determine the starting phase based on
      * the current match minute.
      */
-    const phase = this.getPhase(match.minute);
+    const phase =
+      this.getPhase(match.minute);
 
     this.phases.set(
       matchId,
@@ -71,7 +81,9 @@ export class MatchSimulationEngineService {
     );
   }
 
-  async stop(matchId: string): Promise<void> {
+  async stop(
+    matchId: string,
+  ): Promise<void> {
     const timer =
       this.simulations.get(matchId);
 
@@ -81,8 +93,13 @@ export class MatchSimulationEngineService {
 
     clearInterval(timer);
 
-    this.simulations.delete(matchId);
-    this.phases.delete(matchId);
+    this.simulations.delete(
+      matchId,
+    );
+
+    this.phases.delete(
+      matchId,
+    );
 
     this.logger.log(
       `Simulation stopped for match ${matchId}.`,
@@ -94,21 +111,31 @@ export class MatchSimulationEngineService {
   ): Promise<void> {
     try {
       const match =
-        await this.matchesService.findOne(matchId);
+        await this.matchesService.findOne(
+          matchId,
+        );
 
       /*
        * Handle halftime separately.
        */
-      if (match.status === MatchStatus.HALFTIME) {
-        await this.handleHalftime(matchId);
+      if (
+        match.status === MatchStatus.HALFTIME
+      ) {
+        await this.handleHalftime(
+          matchId,
+        );
+
         return;
       }
 
       /*
        * Stop if the match is no longer live.
        */
-      if (match.status !== MatchStatus.LIVE) {
+      if (
+        match.status !== MatchStatus.LIVE
+      ) {
         await this.stop(matchId);
+
         return;
       }
 
@@ -119,18 +146,28 @@ export class MatchSimulationEngineService {
        * First half ends at minute 45.
        */
       if (nextMinute === 45) {
-        await this.matchesService.updateState(
-          matchId,
-          {
-            minute: 45,
-            status: MatchStatus.HALFTIME,
-          },
-        );
+        const updatedMatch =
+          await this.matchesService.updateState(
+            matchId,
+            {
+              minute: 45,
+              status: MatchStatus.HALFTIME,
+            },
+          );
 
         this.phases.set(
           matchId,
           SimulationPhase.HALFTIME,
         );
+
+        /*
+         * Broadcast halftime state.
+         */
+        if (updatedMatch) {
+          this.realtimeService.broadcastScoreUpdate(
+            updatedMatch,
+          );
+        }
 
         this.logger.log(
           `Match ${matchId} reached halftime.`,
@@ -143,18 +180,28 @@ export class MatchSimulationEngineService {
        * Second half ends at minute 90.
        */
       if (nextMinute >= 90) {
-        await this.matchesService.updateState(
-          matchId,
-          {
-            minute: 90,
-            status: MatchStatus.FINISHED,
-          },
-        );
+        const updatedMatch =
+          await this.matchesService.updateState(
+            matchId,
+            {
+              minute: 90,
+              status: MatchStatus.FINISHED,
+            },
+          );
 
         this.phases.set(
           matchId,
           SimulationPhase.FINISHED,
         );
+
+        /*
+         * Broadcast full-time state.
+         */
+        if (updatedMatch) {
+          this.realtimeService.broadcastScoreUpdate(
+            updatedMatch,
+          );
+        }
 
         await this.stop(matchId);
 
@@ -188,7 +235,20 @@ export class MatchSimulationEngineService {
       );
 
       /*
+       * Broadcast the updated match clock/state.
+       */
+      if (updatedMatch) {
+        this.realtimeService.broadcastScoreUpdate(
+          updatedMatch,
+        );
+      }
+
+      /*
        * Generate match events.
+       *
+       * If a goal occurs, the event simulation
+       * service will also broadcast the event
+       * and updated score.
        */
       await this.matchEventSimulationService.simulate(
         updatedMatch,
@@ -217,20 +277,32 @@ export class MatchSimulationEngineService {
      * the next tick resumes the second half at minute 46.
      */
     const match =
-      await this.matchesService.findOne(matchId);
+      await this.matchesService.findOne(
+        matchId,
+      );
 
-    await this.matchesService.updateState(
-      matchId,
-      {
-        minute: match.minute + 1,
-        status: MatchStatus.LIVE,
-      },
-    );
+    const updatedMatch =
+      await this.matchesService.updateState(
+        matchId,
+        {
+          minute: match.minute + 1,
+          status: MatchStatus.LIVE,
+        },
+      );
 
     this.phases.set(
       matchId,
       SimulationPhase.SECOND_HALF,
     );
+
+    /*
+     * Broadcast the second-half resumption.
+     */
+    if (updatedMatch) {
+      this.realtimeService.broadcastScoreUpdate(
+        updatedMatch,
+      );
+    }
 
     this.logger.log(
       `Match ${matchId} resumed for the second half.`,
