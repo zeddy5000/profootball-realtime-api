@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { MatchesController } from './controllers/matches.controller';
+import { MatchEventsController } from './controllers/match-events.controller';
 
 import { RedisMatchesRepository } from './reposirories/redis-matches.repository';
 import { RedisMatchEventsRepository } from './reposirories/redis-match-events.repository';
@@ -9,12 +10,13 @@ import { MATCHES_REPOSITORY } from './reposirories/matches.tokens';
 import { MATCH_EVENTS_REPOSITORY } from './reposirories/match-events.token';
 
 import { MatchesService } from './services/matches.service';
-
 import { MatchEventsService } from './services/match-events.service';
-import { MatchEventsController } from './controllers/match-events.controller';
 
 @Module({
-  controllers: [MatchesController, MatchEventsController],
+  controllers: [
+    MatchesController,
+    MatchEventsController,
+  ],
 
   providers: [
     MatchesService,
@@ -33,6 +35,7 @@ import { MatchEventsController } from './controllers/match-events.controller';
 
   exports: [
     MatchesService,
+    MatchEventsService,
     MATCH_EVENTS_REPOSITORY,
   ],
 })
