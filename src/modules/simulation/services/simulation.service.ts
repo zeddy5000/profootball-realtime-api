@@ -1,17 +1,19 @@
 import {
-  Injectable,
-  NotFoundException,
   BadRequestException,
+  Injectable,
 } from '@nestjs/common';
 
-import { MatchesService } from '../../matches/services/matches.service';
 import { MatchStatus } from '../../matches/enums/match-status.enum';
 import { Match } from '../../matches/entities/match.entity';
+import { MatchesService } from '../../matches/services/matches.service';
+
+import { MatchSimulationEngineService } from './match-simulation-engine.service';
 
 @Injectable()
 export class SimulationService {
   constructor(
     private readonly matchesService: MatchesService,
+    private readonly simulationEngine: MatchSimulationEngineService,
   ) {}
 
   async startMatch(
@@ -19,12 +21,6 @@ export class SimulationService {
   ): Promise<Match> {
     const match =
       await this.matchesService.findOne(matchId);
-
-    if (!match) {
-      throw new NotFoundException(
-        `Match with ID '${matchId}' not found.`,
-      );
-    }
 
     if (
       match.status !== MatchStatus.SCHEDULED
@@ -34,12 +30,19 @@ export class SimulationService {
       );
     }
 
-    return this.matchesService.updateState(
+    const updatedMatch =
+      await this.matchesService.updateState(
+        matchId,
+        {
+          status: MatchStatus.LIVE,
+          minute: 0,
+        },
+      );
+
+    await this.simulationEngine.start(
       matchId,
-      {
-        status: MatchStatus.LIVE,
-        minute: 0,
-      },
     );
+
+    return updatedMatch;
   }
 }

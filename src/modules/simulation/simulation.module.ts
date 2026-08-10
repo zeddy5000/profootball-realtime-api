@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 
 import { MatchesModule } from '../matches/matches.module';
-import { SimulationController } from './controllers/simulation.controller';
-import { SimulationService } from './services/simulation.service';
 
+import { SimulationController } from './controllers/simulation.controller';
+
+import { MatchSimulationEngineService } from './services/match-simulation-engine.service';
+import { SimulationService } from './services/simulation.service';
+import { MatchEventSimulationService } from './services/match-event-simulation.service';
 @Module({
   imports: [
     MatchesModule,
@@ -15,10 +18,13 @@ import { SimulationService } from './services/simulation.service';
 
   providers: [
     SimulationService,
+    MatchSimulationEngineService,
+    MatchEventSimulationService,
   ],
 
   exports: [
     SimulationService,
+    MatchSimulationEngineService,
   ],
 })
 export class SimulationModule {}
