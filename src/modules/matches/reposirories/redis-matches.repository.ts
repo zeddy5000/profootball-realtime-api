@@ -6,11 +6,15 @@ import { RedisService } from '../../../infrastructure/redis/redis.service';
 import { CreateMatchDto } from '../dto/create-match.dto';
 import { UpdateMatchDto } from '../dto/update-match.dto';
 import { Match } from '../entities/match.entity';
-import type { IMatchesRepository } from './matches.repository.interface';
 import { MatchStatus } from '../enums/match-status.enum';
+import { MatchStateUpdate } from '../interfaces/match-state-update.interface';
+
+import type { IMatchesRepository } from './matches.repository.interface';
 
 @Injectable()
-export class RedisMatchesRepository implements IMatchesRepository {
+export class RedisMatchesRepository
+  implements IMatchesRepository
+{
   private readonly MATCH_KEY_PREFIX = 'match';
   private readonly MATCH_SET_KEY = 'matches';
 
@@ -18,7 +22,9 @@ export class RedisMatchesRepository implements IMatchesRepository {
     private readonly redisService: RedisService,
   ) {}
 
-  async create(createMatchDto: CreateMatchDto): Promise<Match> {
+  async create(
+    createMatchDto: CreateMatchDto,
+  ): Promise<Match> {
     const now = new Date();
 
     const match: Match = {
@@ -29,14 +35,17 @@ export class RedisMatchesRepository implements IMatchesRepository {
       awayScore: 0,
       minute: 0,
       status: MatchStatus.SCHEDULED,
+      events: [],
       createdAt: now,
       updatedAt: now,
-      events: [],
     };
 
     const key = this.getMatchKey(match.id);
 
-    await this.redisService.set(key, match);
+    await this.redisService.set(
+      key,
+      match,
+    );
 
     await this.redisService.sadd(
       this.MATCH_SET_KEY,
@@ -64,7 +73,9 @@ export class RedisMatchesRepository implements IMatchesRepository {
     return matches;
   }
 
-  async findOne(id: string): Promise<Match | null> {
+  async findOne(
+    id: string,
+  ): Promise<Match | null> {
     const key = this.getMatchKey(id);
 
     return this.redisService.get<Match>(key);
@@ -88,12 +99,41 @@ export class RedisMatchesRepository implements IMatchesRepository {
 
     const key = this.getMatchKey(id);
 
-    await this.redisService.set(key, updated);
+    await this.redisService.set(
+      key,
+      updated,
+    );
 
     return updated;
   }
 
-  async delete(id: string): Promise<void> {
+  async updateState(
+    id: string,
+    update: MatchStateUpdate,
+  ): Promise<Match | null> {
+    const existing = await this.findOne(id);
+
+    if (!existing) {
+      return null;
+    }
+
+    const updated: Match = {
+      ...existing,
+      ...update,
+      updatedAt: new Date(),
+    };
+
+    await this.redisService.set(
+      this.getMatchKey(id),
+      updated,
+    );
+
+    return updated;
+  }
+
+  async delete(
+    id: string,
+  ): Promise<void> {
     const key = this.getMatchKey(id);
 
     await this.redisService.delete(key);
@@ -104,7 +144,9 @@ export class RedisMatchesRepository implements IMatchesRepository {
     );
   }
 
-  private getMatchKey(id: string): string {
+  private getMatchKey(
+    id: string,
+  ): string {
     return `${this.MATCH_KEY_PREFIX}:${id}`;
   }
 }

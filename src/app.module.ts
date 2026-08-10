@@ -13,6 +13,7 @@ import { RedisModule } from './infrastructure/redis/redis.module';
 import { ApiFootballModule } from './infrastructure/api-football/api-football.module';
 import { FootballModule } from './modules/football/football.module';
 import { FootballProviderModule } from './infrastructure/football-provider/football-provider.module';
+import { SimulationModule } from './modules/simulation/simulation.module';
 
 @Module({
   imports: [
@@ -35,6 +36,8 @@ import { FootballProviderModule } from './infrastructure/football-provider/footb
      FootballModule,
 
      FootballProviderModule,
+
+     SimulationModule,
 
     
   ],

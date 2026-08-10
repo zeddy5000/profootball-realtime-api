@@ -9,6 +9,7 @@ import { UpdateMatchDto } from '../dto/update-match.dto';
 import { Match } from '../entities/match.entity';
 import type { IMatchesRepository } from '../reposirories/matches.repository.interface';
 import { MATCHES_REPOSITORY } from '../reposirories/matches.tokens';
+import { MatchStateUpdate } from '../interfaces/match-state-update.interface';
 
 @Injectable()
 export class MatchesService {
@@ -17,19 +18,28 @@ export class MatchesService {
     private readonly matchesRepository: IMatchesRepository,
   ) {}
 
-  async create(createMatchDto: CreateMatchDto): Promise<Match> {
-    return this.matchesRepository.create(createMatchDto);
+  async create(
+    createMatchDto: CreateMatchDto,
+  ): Promise<Match> {
+    return this.matchesRepository.create(
+      createMatchDto,
+    );
   }
 
   async findAll(): Promise<Match[]> {
     return this.matchesRepository.findAll();
   }
 
-  async findOne(id: string): Promise<Match> {
-    const match = await this.matchesRepository.findOne(id);
+  async findOne(
+    id: string,
+  ): Promise<Match> {
+    const match =
+      await this.matchesRepository.findOne(id);
 
     if (!match) {
-      throw new NotFoundException(`Match with ID '${id}' not found.`);
+      throw new NotFoundException(
+        `Match with ID '${id}' not found.`,
+      );
     }
 
     return match;
@@ -39,23 +49,50 @@ export class MatchesService {
     id: string,
     updateMatchDto: UpdateMatchDto,
   ): Promise<Match> {
-    const match = await this.matchesRepository.update(
-      id,
-      updateMatchDto,
-    );
+    const match =
+      await this.matchesRepository.update(
+        id,
+        updateMatchDto,
+      );
 
     if (!match) {
-      throw new NotFoundException(`Match with ID '${id}' not found.`);
+      throw new NotFoundException(
+        `Match with ID '${id}' not found.`,
+      );
     }
 
     return match;
   }
 
-  async remove(id: string): Promise<void> {
-    const match = await this.matchesRepository.findOne(id);
+  async updateState(
+    id: string,
+    update: MatchStateUpdate,
+  ): Promise<Match> {
+    const match =
+      await this.matchesRepository.updateState(
+        id,
+        update,
+      );
 
     if (!match) {
-      throw new NotFoundException(`Match with ID '${id}' not found.`);
+      throw new NotFoundException(
+        `Match with ID '${id}' not found.`,
+      );
+    }
+
+    return match;
+  }
+
+  async remove(
+    id: string,
+  ): Promise<void> {
+    const match =
+      await this.matchesRepository.findOne(id);
+
+    if (!match) {
+      throw new NotFoundException(
+        `Match with ID '${id}' not found.`,
+      );
     }
 
     await this.matchesRepository.delete(id);
