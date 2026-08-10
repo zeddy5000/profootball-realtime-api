@@ -1,0 +1,3 @@
+export const MATCH_EVENTS_REPOSITORY = Symbol(
+  'MATCH_EVENTS_REPOSITORY',
+);

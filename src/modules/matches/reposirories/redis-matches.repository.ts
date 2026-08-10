@@ -31,6 +31,7 @@ export class RedisMatchesRepository implements IMatchesRepository {
       status: MatchStatus.SCHEDULED,
       createdAt: now,
       updatedAt: now,
+      events: [],
     };
 
     const key = this.getMatchKey(match.id);
