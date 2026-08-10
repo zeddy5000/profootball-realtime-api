@@ -1,4 +1,5 @@
 import { MatchStatus } from '../enums/match-status.enum';
+import { MatchEvent } from './match-event-entity';
 
 export class Match {
   id!: string;
@@ -14,6 +15,8 @@ export class Match {
   minute!: number;
 
   status!: MatchStatus;
+
+  events!: MatchEvent[];
 
   createdAt!: Date;
 
