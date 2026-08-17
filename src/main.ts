@@ -14,7 +14,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-   app.enableVersioning({
+  app.enableVersioning({
     type: VersioningType.URI,
   });
 
@@ -24,24 +24,33 @@ async function bootstrap() {
 
   app.use(compression());
 
-  app.setGlobalPrefix(configService.get<string>('app.apiPrefix') ?? 'api');
+  app.setGlobalPrefix(
+    configService.get<string>('app.apiPrefix') ?? 'api',
+  );
 
   const swaggerConfig = new DocumentBuilder()
-  .setTitle('ProFootball Match API')
-  .setDescription(
-    'Real-time football match simulation API built with NestJS.',
-  )
-  .setVersion('1.0.0')
-  .addBearerAuth()
-  .build();
+    .setTitle('ProFootball Match API')
+    .setDescription(
+      'Real-time football match simulation API built with NestJS.',
+    )
+    .setVersion('1.0.0')
+    .addBearerAuth()
+    .build();
 
-const document = SwaggerModule.createDocument(app, swaggerConfig);
+  const document = SwaggerModule.createDocument(
+    app,
+    swaggerConfig,
+  );
 
-SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalInterceptors(
+    new ResponseInterceptor(),
+  );
 
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -56,12 +65,15 @@ SwaggerModule.setup('api/docs', app, document);
 
   app.enableShutdownHooks();
 
-  const port = configService.get<number>('app.port') ?? 3000;
+  const port =
+    configService.get<number>('app.port') ?? 3000;
 
-  await app.listen(port);
+  // Render requires the application to listen on
+  // 0.0.0.0 so it can receive external traffic.
+  await app.listen(port, '0.0.0.0');
 
   console.log(
-    `🚀 ${configService.get('app.name')} running on http://localhost:${port}`,
+    `🚀 ${configService.get('app.name')} running on port ${port}`,
   );
 }
 
